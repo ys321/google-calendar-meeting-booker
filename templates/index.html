@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vaidrix Meeting Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1020;
+      color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-card {
+      background: #111827;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.55);
+      width: 360px;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+    .chat-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+      background: radial-gradient(circle at top left, #1d4ed8, #0f172a);
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22d3ee, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b1020;
+    }
+    .chat-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .chat-subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .chat-body {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 420px;
+    }
+    .msg {
+      max-width: 82%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .msg.bot {
+      align-self: flex-start;
+      background: rgba(31, 41, 55, 0.95);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #2563eb;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-footer {
+      border-top: 1px solid rgba(31, 41, 55, 0.95);
+      padding: 8px;
+      display: flex;
+      gap: 6px;
+      background: #020617;
+    }
+    .chat-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      padding: 8px 12px;
+      font-size: 13px;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
+    }
+    .chat-input::placeholder {
+      color: #6b7280;
+    }
+    .chat-button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      background: linear-gradient(135deg, #22d3ee, #6366f1);
+      color: #020617;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chat-button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-card">
+    <div class="chat-header">
+      <div class="avatar">V</div>
+      <div>
+        <div class="chat-title">Vaidrix Meeting Assistant</div>
+        <div class="chat-subtitle">Book a call in seconds ⚡</div>
+      </div>
+    </div>
+    <div id="chat-body" class="chat-body">
+      <div class="msg bot">
+        Hi! I can help you book a meeting with the Vaidrix team.<br />
+        Tell me what you want, for example:<br />
+        <em>"Book a 30 min call tomorrow at 4pm. My email is john@company.com"</em>
+      </div>
+    </div>
+    <form id="chat-form" class="chat-footer">
+      <input
+        id="chat-input"
+        class="chat-input"
+        autocomplete="off"
+        placeholder="Type your message..."
+      />
+      <button id="chat-send" class="chat-button" type="submit">
+        <span>Send</span>
+        <span>➤</span>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    async function sendMessage(message) {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+      return res.json();
+    }
+
+    const chatBody = document.getElementById("chat-body");
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const chatSend = document.getElementById("chat-send");
+
+    function appendMessage(text, who) {
+      const div = document.createElement("div");
+      div.className = "msg " + who;
+      div.innerText = text;
+      chatBody.appendChild(div);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage(text, "user");
+      chatInput.value = "";
+      chatInput.focus();
+      chatSend.disabled = true;
+
+      try {
+        const data = await sendMessage(text);
+        appendMessage(data.reply, "bot");
+      } catch (err) {
+        console.error(err);
+        appendMessage("Error talking to server. Please try again.", "bot");
+      } finally {
+        chatSend.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
