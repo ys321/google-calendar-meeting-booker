@@ -158,6 +158,7 @@ GOOGLE_API_KEY=your-gemini-api-key
 GOOGLE_CLIENT_ID=your-oauth-client-id
 GOOGLE_CLIENT_SECRET=your-oauth-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback
+OAUTHLIB_INSECURE_TRANSPORT=1
 
 # Required - Calendar ID
 GOOGLE_CALENDAR_ID=your-calendar-id@group.calendar.google.com
